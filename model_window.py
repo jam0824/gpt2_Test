@@ -11,35 +11,41 @@ class ModelWindow:
     image_count = 0
     voice_main_key = 'c28adf78-d67d-4588-a9a5-970a76ca6b07'
     voice_sub_key = 'f95d6c31-4ffa-4222-a261-7c8ed7213441'
+    wait_time_conversation = 4000
 
     def make_window(self, width, height):
         self.coefont = model_coefont.ModelCoeFont()
-        self.width = width
-        self.height = height
         self.root=tk.Tk()
         self.root.config(bg="snow")
         self.root.attributes("-transparentcolor", "snow")
         self.root.overrideredirect(1)
+        
+        self.adjust_window(width, height, 40)
+        self.add_canvas(width, height)
+        #self.canvas.bind("<Expose>", self.load_gpt2)
+    
+    def adjust_window(self, width, height, taskbar_height):
         w = self.root.winfo_screenwidth()
         h = self.root.winfo_screenheight()
         self.root.geometry(
-            str(self.width) + 'x' + str(self.height) + '+' + 
+            str(width) + 'x' + str(height) + '+' + 
             str(w - width) + '+' + 
-            str(h-height -40)
+            str(h - height - taskbar_height)
             )
 
+
+    def add_canvas(self, width, height):
         self.canvas = tk.Canvas(
             master=self.root, 
             background="snow", 
             width=width, 
-            height=width, 
+            height=height, 
             bd=0, 
             highlightthickness=0, 
             relief=tk.FLAT
             )
         self.canvas.place(x=0, y=0)
         self.canvas.bind("<Button-1>", self.btn_clicked)
-        #self.canvas.bind("<Expose>", self.load_gpt2)
 
         
 
@@ -115,7 +121,7 @@ class ModelWindow:
             self.root.after(100, self.play_voice, text, self.voice_main_key)
         self.len_message += 1
         if self.len_message < len(self.message):
-            self.root.after(5000, self.message_controller)
+            self.root.after(self.wait_time_conversation, self.message_controller)
 
     def play_voice(self, text, key):
         self.coefont.play(text, key)

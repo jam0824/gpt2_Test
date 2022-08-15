@@ -2,7 +2,7 @@ import random
 
 class MakeHardPrompt:
     def get_tag(self):
-        tag = ['セガサターン']
+        tag = ['セガサターン', '異世界', 'セガ', 'コミケ']
         return random.choice(tag)
 
     def get_hard_prompt(self, tag):
