@@ -28,6 +28,12 @@ class GetSentence:
          list_mesages = self.delete_list_min_message(list_mesages, 5)
          return list_mesages
 
+    def add_yukkuri(self, list_messages):
+        list_messages.insert(0, "こんにちは。ゆっくり霊夢です")
+        list_messages.insert(1, "ゆっくり魔理沙だぜ")
+        return list_messages
+
+
     def exchage_words(self, text, list_target_word, exchange_word):
         for w in list_target_word:
             text = text.replace(w, exchange_word)
