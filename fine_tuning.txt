@@ -1,0 +1,38 @@
+from google.colab import drive 
+drive.mount('/content/drive')
+!mkdir -p '/content/drive/My Drive/work/'
+%cd '/content/drive/My Drive/work/'
+!pip install transformers
+!pip install datasets
+!pip install sentencepiece
+
+%cd '/content/drive/My Drive/work/'
+
+%%time
+# ファインチューニングの実行
+!python ./transformers/examples/language-modeling/run_clm.py \
+    --model_name_or_path=rinna/japanese-gpt2-small \
+    --train_file=all_train.txt \
+    --validation_file=otoboku_train.txt \
+    --do_train \
+    --do_eval \
+    --num_train_epochs=10 \
+    --save_steps=5000 \
+    --save_total_limit=3 \
+    --per_device_train_batch_size=1 \
+    --per_device_eval_batch_size=1 \
+    --output_dir=output/ \
+    --use_fast_tokenizer=False
+
+
+
+from transformers import T5Tokenizer, AutoModelForCausalLM
+
+# トークナイザーとモデルの準備
+tokenizer = T5Tokenizer.from_pretrained("rinna/japanese-gpt2-small")
+model = AutoModelForCausalLM.from_pretrained("output/")
+
+# 推論
+input = tokenizer.encode("セガサターンについてお話しようよ。セガサターンって最高だよね？", return_tensors="pt")
+output = model.generate(input, do_sample=True, max_length=100, num_return_sequences=8)
+print(tokenizer.batch_decode(output))

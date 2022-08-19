@@ -2,13 +2,27 @@ from transformers import T5Tokenizer, AutoModelForCausalLM
 import random
 
 class GetSentence:
-    max_length = 100
+    max_length = 140
     num_sequences = 1
+    special_token = {'bos_token': '<s>',
+        'cls_token': '[CLS]',
+        'eos_token': '</s>',
+        'mask_token': '[MASK]',
+        'pad_token': '[PAD]',
+        'sep_token': '[SEP]',
+        'unk_token': '<unk>'}
     def get_sentence(self, prefix):
         tokenizer = T5Tokenizer.from_pretrained("rinna/japanese-gpt2-small") 
+        #model = AutoModelForCausalLM.from_pretrained("../work/otoboku_output/")
         #model = AutoModelForCausalLM.from_pretrained("../work/little_output/")
-        model = AutoModelForCausalLM.from_pretrained("rinna/japanese-gpt2-small") 
-        # 推論 
+        #model = AutoModelForCausalLM.from_pretrained("rinna/japanese-gpt2-small") 
+        #model = AutoModelForCausalLM.from_pretrained("../work/all_output/") 
+        
+        list_model = ["../work/otoboku_output/", "../work/little_output/", "rinna/japanese-gpt2-small", "../work/all_output/"]
+        model = AutoModelForCausalLM.from_pretrained(random.choice(list_model)) 
+        
+        # 推論
+        prefix = self.special_token['bos_token'] + prefix + self.special_token['eos_token']
         input = tokenizer.encode(prefix, return_tensors="pt") 
         output = model.generate(
             input, 
@@ -19,8 +33,8 @@ class GetSentence:
         return tokenizer.batch_decode(output)
 
     def get_message(self, sentence):
-         temp = sentence.split('</s>')
-         temp2 = temp[1].replace('<unk>', '')
+         temp = sentence.split(self.special_token['eos_token'])
+         temp2 = temp[1].replace(self.special_token['unk_token'], '')
          temp2 = self.exchage_words(temp2, ['」', '。', ' '], '\n')
          temp2 = temp2.replace('「', '\n')
          list_mesages = temp2.split('\n')
