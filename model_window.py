@@ -1,9 +1,10 @@
+from concurrent.futures import thread
 import tkinter as tk
 import gpt2
 import make_hard_prompt
 import sys
-import model_coefont
 import softalk
+import threading
 
 class ModelWindow:
     root = None
@@ -13,6 +14,7 @@ class ModelWindow:
     voice_main_key = 0
     voice_sub_key = 1
     wait_character_time = 200
+    hanashite = 0
     balloon_dict = {}
     marisa_dict = {}
     reimu_dict = {}
@@ -63,8 +65,14 @@ class ModelWindow:
     def btn_clicked(self, e):
         print("clicked")
         tag = make_hard_prompt.MakeHardPrompt().get_tag()
+        history = make_hard_prompt.MakeHardPrompt().get_hard_prompt(tag)
+        message = make_hard_prompt.MakeHardPrompt().get_message(tag)
         self.display_message(tag + "についての話です", 370, 410)
-        self.root.after(100, self.load_gpt2, tag)
+        self.root.after(100, self.thread, history, message)
+    
+    def thread(self, history, message):
+        thread1 = threading.Thread(target=self.load_gpt2, args=(history, message,))
+        thread1.start()
 
 
     def add_image(self, image_path, width, height):
@@ -151,40 +159,42 @@ class ModelWindow:
         self.marisa_dict['pos_y'] += self.marisa_dict["increase"]
         self.root.after(120, self.fuwa_fuwa_animation)
 
-    def load_gpt2(self, tag):
-        prefix = make_hard_prompt.MakeHardPrompt().get_hard_prompt(tag)
-        #print(prefix)
-        gpt = gpt2.GetSentence()
-        response = gpt.get_sentence(prefix)
-        self.message = gpt.get_message(response[0])
-        #self.message = gpt.add_yukkuri(self.message)
-        self.len_message = 0
-        print(self.message)
-        self.message_controller()
 
-    def message_controller(self):
-        text = self.message[self.len_message]
+
+
+    def load_gpt2(self, history, text):
+        history = make_hard_prompt.MakeHardPrompt().add_hard_prompt(history, text, self.hanashite)
+        print(history)
+        gpt = gpt2.GetSentence()
+        response = gpt.get_sentence(history)
+        self.message = gpt.get_message(response[0])
+        print(self.message)
+        if len(self.message) != 0:
+            self.message_controller(history, self.message[0])
+
+    def message_controller(self, history, text):
         self.display_message(text, 370, 410)
 
-        if self.len_message % 2 == 1:
-            self.change_image(
-                self.balloon_dict['balloon_left_no'],
-                self.balloon_dict['pos_x'], 
-                self.balloon_dict['pos_y'],
-                self.balloon_dict['tag'])
-            self.animation(self.marisa_dict, len(text))
-            self.root.after(100, self.play_voice, text, self.voice_sub_key)
-        else:
+        if self.hanashite == 0:
             self.change_image(
                 self.balloon_dict['balloon_right_no'],
                 self.balloon_dict['pos_x'], 
                 self.balloon_dict['pos_y'],
                 self.balloon_dict['tag'])
             self.animation(self.reimu_dict, len(text))
+            self.hanashite = 1
             self.root.after(100, self.play_voice, text, self.voice_main_key)
-        self.len_message += 1
-        if self.len_message < len(self.message):
-            self.root.after(self.wait_character_time * len(text), self.message_controller)
+        else:
+            self.change_image(
+                self.balloon_dict['balloon_left_no'],
+                self.balloon_dict['pos_x'], 
+                self.balloon_dict['pos_y'],
+                self.balloon_dict['tag'])
+            self.animation(self.marisa_dict, len(text))
+            self.hanashite = 0
+            self.root.after(100, self.play_voice, text, self.voice_sub_key)
+        
+        self.root.after(30, self.thread, history, text)
 
     def play_voice(self, text, key):
         self.softalk.play(key, text)

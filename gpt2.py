@@ -2,11 +2,12 @@ from transformers import T5Tokenizer, AutoModelForCausalLM
 import random
 
 class GetSentence:
-    max_length = 200
+    max_length = 100
     num_sequences = 1
     def get_sentence(self, prefix):
-        tokenizer = T5Tokenizer.from_pretrained("rinna/japanese-gpt2-medium") 
-        model = AutoModelForCausalLM.from_pretrained("rinna/japanese-gpt2-medium") 
+        tokenizer = T5Tokenizer.from_pretrained("rinna/japanese-gpt2-small") 
+        #model = AutoModelForCausalLM.from_pretrained("../work/little_output/")
+        model = AutoModelForCausalLM.from_pretrained("rinna/japanese-gpt2-small") 
         # 推論 
         input = tokenizer.encode(prefix, return_tensors="pt") 
         output = model.generate(
@@ -25,7 +26,7 @@ class GetSentence:
          list_mesages = temp2.split('\n')
          list_mesages = list(filter(None, list_mesages))
          list_mesages = list(set(list_mesages))
-         list_mesages = self.delete_list_min_message(list_mesages, 5)
+         list_mesages = self.delete_list_min_message(list_mesages, 4)
          return list_mesages
 
     def add_yukkuri(self, list_messages):
